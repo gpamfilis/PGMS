@@ -9,6 +9,11 @@ class ForwardBackwardAlgorythm(object):
         self.hidden_states=range(self.px.shape[0])
 
     def forward(self):
+        """
+        The forward part of the algorythm.
+
+        todo: insert math expression
+        """
         a1g = self.pyx[self.y[0],0]*self.px[0]#(1-q) * 0.2
         a1b = self.pyx[self.y[0],1]*self.px[1]#q * .8
         ai_ar = np.zeros((len(self.y), 2))
@@ -28,7 +33,6 @@ class ForwardBackwardAlgorythm(object):
                 bi_ar[t,xi] = (bi_ar[t+1, 0] * self.pxx[xi, 0] * self.pyx[0, self.y[t+1]]) + (bi_ar[t+1, 1] * self.pxx[xi, 1] * self.pyx[1, self.y[t+1]])
         return bi_ar
 
-
     def gammas(self):
         ai = self.forward()
         bi = self.backward()
@@ -41,5 +45,4 @@ class ForwardBackwardAlgorythm(object):
         out = np.zeros((len(self.y), 2))
         for i, a in enumerate(l):
             out[i,:] = a
-
         return out
