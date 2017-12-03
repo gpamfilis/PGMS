@@ -1,5 +1,16 @@
 import numpy as np
 
+
+class SumProduct(object):
+    pass
+
+class MaxProduct(object):
+    pass
+
+class ViterbyAlgorythm(object):
+    pass
+
+
 class ForwardBackwardAlgorythm(object):
     def __init__(self, px, pxx, pyx, y):
         self.px=px
