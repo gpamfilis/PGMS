@@ -1,3 +1,6 @@
+
+# http://www.blackarbs.com/blog/introduction-hidden-markov-models-python-networkx-sklearn/2/9/2017
+
 from hmmlearn.hmm import MultinomialHMM
 import numpy as np
 import pandas as pd

@@ -1,0 +1,14 @@
+# Created by .ignore support plugin (hsz.mobi)
+.idea/
+.ipynb_checkpoints/Untitled-checkpoint.ipynb
+HiddenMarkovModel-master/
+__pycache__/
+champs.csv
+examples/example_2.py
+pet_dog_markov.dot
+test.csv
+yo.csv
+yo_0.csv
+yo_1.csv
+yo_2.csv
+yo_3.csv
