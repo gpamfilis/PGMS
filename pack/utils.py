@@ -1,12 +1,70 @@
 from itertools import permutations
 import numpy as np
+import pandas as pd
 import progressbar
+
 K = 10
+
+def test_import():
+    print('test')
+
 
 def string_list_to_numpy(x):
     x = x.strip('[] ').split()
     ar = np.asarray(x).astype(float)
     return ar
+
+
+def emission_probabilities_pyx(y_df, x_df, x_label='over_under_2.5', hidden_states=2):
+    un = np.unique(y_df.values)
+    pyx = np.zeros((hidden_states, np.unique(y_df.values).shape[0]))
+    # print(un,pyx)
+    for i, ix in enumerate(y_df.index):
+        try:
+            yx = np.where(y_df.loc[ix, x_label] == un)[0][0]
+            pyx[int(x_df.loc[ix, x_label]), int(yx)] += 1
+        except Exception as e:
+            # print('exception',e)
+            continue
+    for i, s in enumerate(pyx.sum(axis=1)):
+        pyx[i, :] = pyx[i, :] / s
+    return pyx
+
+
+
+
+
+
+def string_list_to_numpy(x):
+    x = x.strip('[] ').split()
+    ar = np.asarray(x).astype(float)
+    return ar
+
+
+
+
+def compute_elo_ratting_dataframe_for_champ(data,champs, champ_ix):
+    matches_champ = data[data.championship == champs.name[champ_ix]]
+    matches_champ.index = range(matches_champ.shape[0])
+    print('champ', matches_champ.shape)
+    # get all the home and away teams
+    ht = matches_champ.home_team.values
+    at = matches_champ.away_team.values
+    # create an array with both home and arway teams regardles of duplicates
+    all_teams = np.append(ht, at)
+    # drop all the duplicates
+    print(all_teams.shape)
+    all_teams = np.unique(all_teams)
+    print(all_teams.shape)
+    # create a a Player class for each team. this class stores the elo rating for each player
+    players = [Player(name=p) for p in all_teams]
+    elo = Elo()
+
+    # elo_table_array = compute_elo_by_game(matches_champ, players, all_teams, elo)
+    elo_table_array = compute_elo_by_goals(matches_champ, players, all_teams, elo)
+
+    team_elo_timeline_df = pd.DataFrame(elo_table_array, columns=all_teams)
+    return team_elo_timeline_df
 
 class Elo(object):
 
@@ -68,27 +126,11 @@ def transition_matrix_pxx(data, result, n_states=None):
     return transition_matrix
 
 
-def emission_probabilities_pyx(ys, x_df, x_label='result_final', h_states=3):
-    un = np.unique(ys.values)
-    pyx = np.zeros((h_states, np.unique(ys.values).shape[0]))
-    print(un,pyx)
-    for i, ix in enumerate(ys.index):
-        try:
-            yx = np.where(ys[ix] == un)[0][0]
-            pyx[int(x_df.loc[ix][x_label]), int(yx)] += 1
-        except Exception as e:
-            # print(e)
-            continue
-    for i, s in enumerate(pyx.sum(axis=1)):
-        pyx[i, :] = pyx[i, :] / s
-    return pyx
-
-
-if __name__ == '__main__':
-    elo = Elo()
-    p1 = Player(name=0)
-    p2 = Player(name=1)
-    elo.match(p1, p2)
+# if __name__ == '__main__':
+#     elo = Elo()
+#     p1 = Player(name=0)
+#     p2 = Player(name=1)
+#     elo.match(p1, p2)
 
 
 def compute_elo_by_game(data_df, players, all_teams, elo):

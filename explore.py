@@ -11,8 +11,9 @@ champs = pd.read_csv('./champs.csv')
 
 correlations = []
 index = []
-for i in range(50):
-    df = pd.read_csv('./data/yo_'+str(i)+'.csv', index_col=0)
+for i in range(10):
+    df = pd.read_csv('./data/elo_ratings/win_lose/yo_'+str(i)+'.csv', index_col=0)
+    # df = pd.read_csv('./data/elo_ratings/goal_difference/yo_'+str(i)+'.csv', index_col=0)
     inx = champs.name[i]
     df.columns = ['name', 'ac', 'ng']
     df = df.sort_values(by=['ng'], ascending=False)

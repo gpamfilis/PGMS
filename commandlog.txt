@@ -1,0 +1,58 @@
+
+####################################################################################################
+# Starting pipeline at Sun Jan 28 23:52:55 EET 2018
+# Input files:  null
+# Output Log:  .bpipe/logs/3108.log
+# Stage hello
+echo hello
+# Stage world
+# ################ Finished at Sun Jan 28 23:52:58 EET 2018 Duration = 2.387 seconds #################
+
+
+####################################################################################################
+# Starting pipeline at Sun Jan 28 23:53:10 EET 2018
+# Input files:  null
+# Output Log:  .bpipe/logs/3214.log
+# Stage hello
+echo hello
+# Stage world
+# ################ Finished at Sun Jan 28 23:53:12 EET 2018 Duration = 1.847 seconds #################
+
+
+####################################################################################################
+# Starting pipeline at Mon Jan 29 00:41:28 EET 2018
+# Input files:  null
+# Output Log:  .bpipe/logs/4316.log
+# Stage step1
+# Stage step2
+python step_2_elo_get_hidden_get_observed.py over_under_0.5 2 away_team
+
+####################################################################################################
+# Starting pipeline at Mon Jan 29 01:18:43 EET 2018
+# Input files:  null
+# Output Log:  .bpipe/logs/5360.log
+# Stage step1
+# Stage step2
+python step_2_elo_get_hidden_get_observed.py over_under_0.5 2 away_team
+python step_2_elo_get_hidden_get_observed.py over_under_1.5 2 away_team
+python step_2_elo_get_hidden_get_observed.py over_under_2.5 2 away_team
+python step_2_elo_get_hidden_get_observed.py over_under_3.5 2 away_team
+python step_2_elo_get_hidden_get_observed.py over_under_4.5 2 away_team
+python step_2_elo_get_hidden_get_observed.py over_under_0.5 2 home_team
+python step_2_elo_get_hidden_get_observed.py over_under_1.5 2 home_team
+python step_2_elo_get_hidden_get_observed.py over_under_2.5 2 home_team
+python step_2_elo_get_hidden_get_observed.py over_under_3.5 2 home_team
+python step_2_elo_get_hidden_get_observed.py over_under_4.5 2 home_team
+# Stage step3
+# ###### Finished at Mon Jan 29 02:25:42 EET 2018 Duration = 1 hours, 6 minutes, 59.006 seconds ######
+
+
+####################################################################################################
+# Starting pipeline at Mon Jan 29 13:06:01 EET 2018
+# Input files:  null
+# Output Log:  .bpipe/logs/3171.log
+# Stage step3
+python step_3_compute_px_pxx_pyx.py over_under_0.5 2 home_team
+python step_3_compute_px_pxx_pyx.py over_under_0.5 2 away_team
+# ########## Finished at Mon Jan 29 13:12:52 EET 2018 Duration = 6 minutes, 51.734 seconds ###########
+
