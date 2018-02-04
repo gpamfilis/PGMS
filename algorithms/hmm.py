@@ -12,7 +12,6 @@ class MaxProduct(object):
 class ViterbyAlgorithm(object):
     pass
 
-
 class ForwardBackwardAlgorithm(object):
     def __init__(self, px, pxx, pyx, y):
         self.px=px

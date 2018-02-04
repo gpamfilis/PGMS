@@ -13,8 +13,6 @@ from utilities import (Elo, Player, transition_matrix_pxx,
 from algorithms import ForwardBackwardAlgorithm
 
 
-
-
 def compute_elo_ratting_dataframe_for_champ(data,champs, champ_ix):
     matches_champ = data[data.championship == champs.name[champ_ix]]
     matches_champ.index = range(matches_champ.shape[0])

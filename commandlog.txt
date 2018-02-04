@@ -1,3 +1,7 @@
+sshpass -p slave0123 scp -r slave0@192.168.0.106:scraping_data/soccerway/csv/data_soccerway_final_.csv Desktop/
+
+
+
 
 ####################################################################################################
 # Starting pipeline at Sun Jan 28 23:52:55 EET 2018
@@ -55,4 +59,3 @@ python step_2_elo_get_hidden_get_observed.py over_under_4.5 2 home_team
 python step_3_compute_px_pxx_pyx.py over_under_0.5 2 home_team
 python step_3_compute_px_pxx_pyx.py over_under_0.5 2 away_team
 # ########## Finished at Mon Jan 29 13:12:52 EET 2018 Duration = 6 minutes, 51.734 seconds ###########
-
