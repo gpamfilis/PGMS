@@ -14,3 +14,6 @@ yo_2.csv
 yo_3.csv
 data/
 .bpipe/
+
+*.csv
+*.h5
