@@ -113,11 +113,10 @@ class EloSequencingTestChampionship(object):
                     except Exception as e:
                         print('Error [-] Getting States', team_name, e)
 
-                df = pd.DataFrame(output, columns=['index','date','y', 'x'], index=s_teams)
-                df.to_csv('../data/elo_ratings/states/'+self.side_home_or_away+'/'+self.result_key+'/'+f.strip('.csv')
-                          + '_' + '[' + self.result_key + ']' + '_' + str(self.n_states) + '_' + 'y_state_x_state.csv')
+                df = pd.DataFrame(output, columns=['index', 'date', 'y', 'x'], index=s_teams)
+                df.to_csv('../data/elo_ratings/states/'+self.side_home_or_away+'/'+self.result_key+'/'+f.strip('.csv') + '.csv')
             except Exception as e:
-                print('Error [-] All went to shit', championship_name, self.result_key,e)
+                print('Error [-] All went to shit', championship_name, self.result_key, e)
 
     def main(self):
         self.directory_setup()
@@ -127,14 +126,15 @@ class EloSequencingTestChampionship(object):
 if __name__ == '__main__':
     data = pd.read_csv('/home/kasper/Dropbox/Scrapping/soccerway/csv/final_data_soccerway.csv')
     runs = [
-        ('home_team','result_final',   3), ('away_team', 'result_final',  3),
-        ('home_team','over_under_1.5', 2), ('away_team','over_under_1.5', 2),
-        ('home_team','over_under_2.5', 2), ('away_team','over_under_2.5', 2),
-        ('home_team','over_under_3.5', 2), ('away_team','over_under_3.5', 2),
-        ('home_team','over_under_4.5', 2), ('away_team','over_under_4.5', 2)
+        ('home_team', 'result_final',   3), ('away_team', 'result_final',  3),
+        # ('home_team','over_under_0.5', 2), ('away_team','over_under_0.5', 2),
+        # ('home_team','over_under_1.5', 2), ('away_team','over_under_1.5', 2),
+        # ('home_team','over_under_2.5', 2), ('away_team','over_under_2.5', 2),
+        # ('home_team','over_under_3.5', 2), ('away_team','over_under_3.5', 2),
+        # ('home_team','over_under_4.5', 2), ('away_team','over_under_4.5', 2)
         ]
 
     for (side_home_or_away, result_key, n_states) in runs:
         print(side_home_or_away, result_key, n_states)
-        estc = EloSequencingTestChampionship(side_home_or_away=side_home_or_away,data=data, result_key=result_key,n_states=n_states)
+        estc = EloSequencingTestChampionship(side_home_or_away=side_home_or_away, data=data, result_key=result_key, n_states=n_states)
         estc.main()

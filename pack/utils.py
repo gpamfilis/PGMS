@@ -5,8 +5,8 @@ import progressbar
 from scipy.sparse import lil_matrix
 K = 10
 
-
 def delete_directory_contents(folder):
+    print('[Function]: Deleting Directory Contents: ',folder)
     import os, shutil
     for the_file in os.listdir(folder):
         file_path = os.path.join(folder,the_file)
@@ -22,6 +22,9 @@ def test_import():
 
 
 def string_list_to_numpy(x):
+    '''
+    '[1, 2, 3, 4, 5]' -> numpy array([1,2,3,4,5])
+    '''
     try:
         x = x.strip('[] ').split()
         ar = np.asarray(x).astype(float)
@@ -31,7 +34,6 @@ def string_list_to_numpy(x):
             return ar
     except Exception as e:
         return np.nan
-
 
 
 def emission_probabilities_pyx(y_df, x_df, x_label='over_under_2.5', hidden_states=2):
@@ -252,40 +254,4 @@ def compute_elo_by_goals(data_df, players, all_teams, elo, initial_score=100):
     #             elo_table[g, p] = elo_table[g-1, p]
     #         else:
     #             pass
-    return elo_table
-
-
-def compute_elo_by_game(data_df, players, all_teams, elo):
-    """
-    This function is used to compute the elo ratings of teams based on simply wins and losses.
-    :param data_df:
-    :param players:
-    :param elo:
-    :return: array
-    """
-    n_games = data_df.shape[0]
-    elo_table = np.zeros((n_games, len(players)))
-    # set initial score for all teams
-    elo_table[0, :] = 100
-
-    for i in range(n_games):
-        # print('game: ', i)
-        match = data_df.iloc[i]
-        player_home = match.home_team
-        player_away = match.away_team
-        hid = np.where(all_teams == player_home)[0][0]
-        aid = np.where(all_teams == player_away)[0][0]
-        pair = [players[hid], players[aid]]
-        res = match.result_final
-        if res == 0:
-            a, b = elo.match_algo_strict(pair[0], pair[1])
-            elo_table[i, hid] = a.score
-            elo_table[i, aid] = b.score
-        elif res == 2:
-            a, b = elo.match(pair[1], pair[0])
-            elo_table[i, aid] = a.score
-            elo_table[i, hid] = b.score
-        else:
-            pass
-
     return elo_table

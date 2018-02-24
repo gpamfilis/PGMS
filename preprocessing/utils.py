@@ -3,38 +3,15 @@ import numpy as np
 import os
 import pandas as pd
 import progressbar
-#import matplotlib.pyplot as plt
-from scipy.sparse import lil_matrix,csc_matrix, save_npz, load_npz
-import pprint
+from scoring.elo_score import EloRating
+
+# #import matplotlib.pyplot as plt
+# from scipy.sparse import lil_matrix,csc_matrix, save_npz, load_npz
+# import pprint
 
 K = 10
 
 
-def delete_directory_contents(folder):
-    import os, shutil
-    for the_file in os.listdir(folder):
-        file_path = os.path.join(folder,the_file)
-        try:
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-        except Exception as e:
-            print(e)
-
-
-def test_import():
-    print('test')
-
-
-def string_list_to_numpy(x):
-    try:
-        x = x.strip('[] ').split()
-        ar = np.asarray(x).astype(float)
-        if ar.shape[0]==1:
-            return np.nan
-        else:
-            return ar
-    except Exception as e:
-        return np.nan
 
 
 
@@ -53,6 +30,7 @@ def emission_probabilities_pyx(y_df, x_df, x_label='over_under_2.5', hidden_stat
         pyx[i, :] = pyx[i, :] / s
 
     return pyx
+
 
 def string_list_to_numpy(x):
     """
@@ -118,7 +96,7 @@ def compute_elo_ratting_dataframe_for_champ_v3(data, champs):
     matches_champ = data[data.championship.isin(champs)]
     # TODO: dont change the index
     # matches_champ.index = range(matches_champ.shape[0])
-    print('champ', matches_champ.shape)
+    # print('champ', matches_champ.shape)
     # get all the home and away teams
     ht = matches_champ.home_team.values
     at = matches_champ.away_team.values
@@ -126,7 +104,7 @@ def compute_elo_ratting_dataframe_for_champ_v3(data, champs):
     all_teams = np.append(ht, at)
     # drop all the duplicates
     all_teams = np.unique(all_teams)
-    print(all_teams.shape)
+    # print(all_teams.shape)
     # # create a a Player class for each team. this class stores the elo rating for each player
     players = [Player(name=p) for p in all_teams]
     elo = Elo()
@@ -137,40 +115,9 @@ def compute_elo_ratting_dataframe_for_champ_v3(data, champs):
 
     return final
 
-class Elo(object):
-
-    def match(self, p1, p2):
-        return self.match_algo_strict(p1, p2)
-
-    @staticmethod
-    def match_algo_strict(winner, looser):
-        r1 = max(min(looser.score - winner.score, 400), -400)
-        r2 = max(min(winner.score - looser.score, 400), -400)
-        e1 = 1.0 / (1+10**(r1 / 400))
-        e2 = 1.0 / (1+10**(r2 / 400))
-        s1 = 1
-        s2 = 0
-        winner.score = winner.score + K*(s1-e1)
-        looser.score = looser.score + K*(s2-e2)
-
-        # increase win counter
-        winner.wins += 1
-
-        # increase match counter
-        winner.matches += 1
-        looser.matches += 1
-
-        return winner, looser
 
 
-class Player(object):
-    def __init__(self, name, score=100, wins=0, matches=0):
-        self.name = name
-        self.score = score
-        self.wins = wins
-        self.matches = matches
-        self.ys = []
-        self.index = []
+
 
 
 
@@ -204,6 +151,7 @@ def chunks(l, n):
         yield l[i:i+n]
 
 def compute_elo_by_goals(data_df, players, all_teams, elo, initial_score=100):
+    print('[FUNCTION]: computing elo by goals.')
     """
     This function is used to compute the elo ratings of teams based on goals scored depending on wins and losses.
 
@@ -259,11 +207,12 @@ def compute_elo_by_goals(data_df, players, all_teams, elo, initial_score=100):
             a.index.append(ix[i])
             b.index.append(ix[i])
         else:
-            a.ys.append(a.score)
-            b.ys.append(b.score)
-            a.index.append(ix[i])
-            b.index.append(ix[i])
+            pair[0].ys.append(pair[0].score)
+            pair[1].ys.append(pair[1].score)
+            pair[0].index.append(ix[i])
+            pair[1].index.append(ix[i])
 
+    # TODO: convert to pickle. because lossing slashes causes shitstorm.
     for pl in players:
         df = pd.DataFrame(pl.ys, columns = ['elo_v0'], index=pl.index).to_csv('./temp/['+pl.name.replace('/','' ) + '].csv')
         del df
@@ -303,37 +252,6 @@ def compute_elo_by_game(data_df, players, all_teams, elo):
 
     return elo_table
 
-def assemble_sparce_matrices(ix_teams=np.array([0])):
-    files = os.listdir('./temp/')
-    dfs = []
-    bar = progressbar.ProgressBar(widgets=[
-        ' [', progressbar.Timer(), '] ',
-        progressbar.Bar(),
-        ' (', progressbar.ETA(), ') ',
-    ])
-    for matrix in bar(files):
-        df = pd.read_csv('./temp/'+matrix)
-        dfs.append(df)
-    final = pd.concat(dfs, axis=0, ignore_index=False)
-    final.columns = ix_teams
-    return final
-
-def assemble_dataframes(path='./temp/'):
-    files = os.listdir(path)
-    dfs = []
-    bar = progressbar.ProgressBar(widgets=[
-        ' [', progressbar.Timer(), '] ',
-        progressbar.Bar(),
-        ' (', progressbar.ETA(), ') ',
-    ])
-    for dataframe in bar(files):
-    # for dataframe in files:
-        df = pd.read_csv(path+dataframe, index_col='Unnamed: 0')
-        df.columns = [dataframe.strip('[].csv')]
-        dfs.append(df)
-    final = pd.concat(dfs, axis=1, ignore_index=False)
-    delete_directory_contents(path)
-    return final
 
 
 if __name__ == '__main__':

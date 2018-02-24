@@ -1,67 +1,90 @@
-class Elo2(object):
+import datetime
 
-    def match(self, p1, p2):
-        return self.match_algo_strict(p1, p2)
+import h5py
+import progressbar
+import numpy as np
+import pandas as pd
+import os
+import pickle
+from os import sys, path
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-    @staticmethod
-    def match_algo_strict(previous_winner_score, previous_looser_score):
-        r1 = max(min(previous_looser_score - previous_winner_score, 400), -400)
-        r2 = max(min(previous_winner_score - previous_looser_score, 400), -400)
-        e1 = 1.0 / (1+10**(r1 / 400))
-        e2 = 1.0 / (1+10**(r2 / 400))
-        s1 = 1
-        s2 = 0
-        new_winner_score = previous_winner_score + K*(s1-e1)
-        new_looser_score = previous_looser_score + K*(s2-e2)
-
-        return new_winner_score, new_looser_score
+from scoring.utils import (Player, get_unique_teams, create_directory,
+                            compute_elo_by_game_hdf5_v2, compute_elo_by_goals2,
+                            save_players, EloRating)
+from pack.utils import delete_directory_contents
 
 
+class Score(EloRating):
 
-def compute_elo_by_goals2(data_df, players, all_teams, elo=Elo2(), initial_score=100):
-    """
-    This function is used to compute the elo ratings of teams based on goals scored depending on wins and losses.
+    def __init__(self, training_data=None, champs=None, teams=None,pair_num=None, by='games', temp='./elo_temp/', initial_score=100):
+        self.temp = temp
+        self.initial_score = initial_score
+        self.data = training_data
+        self.champs = champs
+        self.teams = teams
+        self.by = by
+        self.pair_num = pair_num
 
-    :param data_df:
-    :param players:
-    :param elo:
-    :return:
-    """
-
-    n_games = data_df.shape[0]
-    # does this work for sparce matrix
-    elo_table = lil_matrix((n_games, len(players)))
-
-    # elo_table = np.zeros((n_games, len(players)))
-    # set initial score for all teams
-    elo_table[0, :] = initial_score
-    bar = progressbar.ProgressBar(widgets=[
-        ' [', progressbar.Timer(), '] ',
-        progressbar.Bar(),
-        ' (', progressbar.ETA(), ') ',
-    ])
-    for i in bar(range(1, n_games)):
-
-        match = data_df.iloc[i-1]
-        player_home = match.home_team
-        player_away = match.away_team
-        hid = np.where(all_teams == player_home)[0][0]
-        aid = np.where(all_teams == player_away)[0][0]
-        pair = [elo_table[i-1, hid], elo_table[i-1, aid]]
-        res = match.result_final
-        home_goals = match.home_goals
-        away_goals = match.away_goals
-
-        if res == 0:
-            for goal_difference in range(int(abs(home_goals-away_goals))):
-                a, b = elo.match_algo_strict(pair[0], pair[1])
-            elo_table[i, hid] = a
-            elo_table[i, aid] = b
-        elif res == 2:
-            for goal_difference in range(int(abs(home_goals-away_goals))):
-                a, b = elo.match(pair[1], pair[0])
-            elo_table[i, aid] = a
-            elo_table[i, hid] = b
+    def main(self):
+        matches_champ = self.data[self.data.championship.isin(self.champs)]
+        all_teams = get_unique_teams(matches_champ)
+        if self.by == 'goals':
+            players = [Player(name=p) for p in all_teams]
+            players_updated = compute_elo_by_goals2(self.match, matches_champ, players, all_teams)
+            save_players(players_updated, self.pair_num, loc=self.temp)
+        elif self.by == 'games':
+            players = [Player(name=p) for p in all_teams]
+            players_updated = compute_elo_by_game_hdf5_v2(self.match, matches_champ, players, all_teams)
+            save_players(players_updated, self.pair_num, loc=self.temp)
         else:
             pass
-    return elo_table
+
+
+if __name__ == '__main__':
+
+    print('[LOADING]')
+    df = pd.read_csv('/home/kasper/Dropbox/Scrapping/soccerway/csv/final_data_soccerway.csv', index_col='Unnamed: 0')
+    df.loc[:, 'date'] = pd.to_datetime(df.date)
+
+    input_date = datetime.datetime(2018, 1, 31)
+    input_data = df[df.date == input_date]
+    training_data = df.loc[:input_data.index[0]-1]
+
+    #home_teams = input_data.home_team.dropna().drop_duplicates().values
+    #teams_grouped = df.groupby('home_team').size()
+    #home_teams_consider = teams_grouped[home_teams].sort_values(ascending=False)
+
+    home_teams = input_data.home_team.dropna().drop_duplicates().values
+    teams_grouped = df.groupby('home_team').size()
+    home_teams_consider = teams_grouped[home_teams].sort_values(ascending=False)
+
+    ### Get Away teams
+
+    away_teams = input_data.away_team.dropna().drop_duplicates().values
+    teams_grouped = df.groupby('away_team').size()
+    away_teams_consider = teams_grouped[away_teams].sort_values(ascending=False)
+
+    threshold_match_number = 100
+    threshold_champ_number = 1000
+
+    home_final_teams = home_teams_consider[home_teams_consider > threshold_match_number].index
+    away_final_teams = away_teams_consider[away_teams_consider > threshold_match_number].index
+
+    new_champs = df.groupby('championship').size().sort_values(ascending=False)
+    champs = new_champs[new_champs>threshold_champ_number].index.values
+
+    final_matches = input_data[(input_data.home_team.isin(home_final_teams)) & (input_data.away_team.isin(away_final_teams))]
+    final_matches.to_csv('../data/predict.csv')
+
+    pairs = final_matches[['home_team','away_team']].values
+    # delete_directory_contents('./elo_temp/')
+    temp = './elo_temp_goals/'
+    # delete_directory_contents(temp)
+
+    for p, pair in enumerate(pairs[:, :]):
+        create_directory(temp)
+        print(pair, p + 1, pairs.shape[0])
+        champs = df[(df.home_team.isin(pair)) | (df.away_team.isin(pair))].championship.dropna().drop_duplicates().values
+        score = Score(champs=champs, pair_num=p, training_data=training_data.iloc[:], by='goals', temp=temp)
+        elo_df = score.main()
