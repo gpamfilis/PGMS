@@ -75,14 +75,29 @@ if __name__ == '__main__':
     champs = new_champs[new_champs>threshold_champ_number].index.values
 
     final_matches = input_data[(input_data.home_team.isin(home_final_teams)) & (input_data.away_team.isin(away_final_teams))]
-    final_matches.to_csv('../data/predict.csv')
+    # final_matches.to_csv('../data/predict.csv')
 
     pairs = final_matches[['home_team','away_team']].values
     # delete_directory_contents('./elo_temp/')
-    temp = './elo_temp_goals/'
+    # delete_directory_contents(temp)
+    try:
+        temp = os.environ['EloTempGoals']
+    except Exception as e:
+        temp = './elo_temp_goals/'
+    print(temp)
+    try:
+        n_start=int(sys.argv[1])
+        n_end=int(sys.argv[2])
+    except Exception as e:
+        print(e)
+        n_start=0
+        n_end=pairs.shape[0]
+    print(n_start,n_end)
+
+    create_directory(temp)
     # delete_directory_contents(temp)
 
-    for p, pair in enumerate(pairs[:, :]):
+    for p, pair in enumerate(pairs[n_start:n_end, :],start=n_start):
         create_directory(temp)
         print(pair, p + 1, pairs.shape[0])
         champs = df[(df.home_team.isin(pair)) | (df.away_team.isin(pair))].championship.dropna().drop_duplicates().values

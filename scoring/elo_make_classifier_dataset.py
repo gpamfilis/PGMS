@@ -8,36 +8,12 @@ import numpy as np
 
 import h5py
 import progressbar
+
+from os import sys, path
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+from scoring.utils import get_match_indexes
 from pack.utils import delete_directory_contents
-# import sys
-# import warnings
-#
-# # if not sys.warnoptions:
-# warnings.simplefilter("ignore")
-# warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def get_match_indexes(data_h5, teams):
-    """
-    This function returns the unique index for the pairs.
-    """
-    bar = progressbar.ProgressBar(widgets=[
-        ' [', progressbar.Timer(), '] ',
-        progressbar.Bar(),
-        ' (', progressbar.ETA(), ') ',
-    ])
-    # ixs = np.array([])
-    # for team in bar(teams[:]):
-    #     ix = data_h5[team][:].T[:,0]
-    #     ixs = np.append(ixs, ix)
-    # uni = np.unique(ixs).astype(int)
-    # return uni
-
-    arrays = []
-    for team in bar(teams[:]):
-        ix = data_h5[team][:].T[:,0]
-        arrays.append(ix)
-    uni = np.unique(np.concatenate(arrays)).astype(int)
-    return uni
 
 
 def get_elo_home_and_away(data_h5, row, ix):
@@ -53,15 +29,9 @@ def get_elo_home_and_away(data_h5, row, ix):
 
 
 if __name__ == '__main__':
-    # from pycallgraph import PyCallGraph
-    # from pycallgraph.output import GraphvizOutput
-    #
-    # with PyCallGraph(output=GraphvizOutput()):
-    #     # code_to_profile()
-    # delete_directory_contents('./elo_goals_data_for_classifier')
+
     print('[LOADING...]: Main DataFrame.')
     df = pd.read_csv('/home/kasper/Dropbox/Scrapping/soccerway/csv/final_data_soccerway.csv', index_col='Unnamed: 0')
-
     pred_data = pd.read_csv('../data/predict.csv', index_col='Unnamed: 0')
     df_teams = pred_data[['home_team','away_team']].values
 
@@ -70,11 +40,10 @@ if __name__ == '__main__':
         print('[INFO]: pairs: ', pair)
 
         h5f = h5py.File('./elo_temp/elo_pairs_' + str(p) + '.h5', 'r')
-        # TODO: rename champ to pair since that what it is
-        champ = list(h5f.keys())[0]
+        pair_num = list(h5f.keys())[0]
         # NOTE: do i need to convert this to a list since i iterate over it?
-        teams = list(h5f[champ].keys())
-        data = h5f[champ]
+        teams = list(h5f[pair_num].keys())
+        data = h5f[pair_num]
         print('[INFO]: getting indexes')
         uni = get_match_indexes(data_h5=data, teams=teams)
 
